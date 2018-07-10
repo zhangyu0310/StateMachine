@@ -2,9 +2,9 @@
 #include <mutex>
 #include <thread>
 
-#include "mutex.h"
-#include "mutex_guard.h"
-#include "condition.h"
+#include "mutex.hpp"
+#include "mutex_guard.hpp"
+#include "condition.hpp"
 
 #define POPPIN
 

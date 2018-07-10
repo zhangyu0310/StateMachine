@@ -20,13 +20,13 @@ class Mutex
 {
 public:
 	Mutex() : mutex_(new std::mutex) {}
-	Mutex(const Mutex &) = delete;
-	Mutex &operator= (const Mutex &) = delete;
+	Mutex(const Mutex&) = delete;
+	Mutex& operator= (const Mutex&) = delete;
 	~Mutex() { delete mutex_; }
 	void lock() { mutex_->lock(); }
 	void unlock() { mutex_->unlock(); }
 private:
-	std::mutex *mutex_;
+	std::mutex* mutex_;
 };
 } // namespace poppin
 

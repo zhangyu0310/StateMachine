@@ -18,6 +18,8 @@
 #include <thread>
 #include <unordered_map>
 
+#include "message_queue.hpp"
+
 namespace poppin
 {
 /*
@@ -46,18 +48,16 @@ public:
         : running_(false),
 		  custom_function_(NULL),
 		  cur_state_("") {}
-	CStateMachine(const CStateMachine<_Ty> &) = delete;
-	CStateMachine<_Ty> &operator= (const CStateMachine<_Ty> &) = delete;
-	~CStateMachine() 
-	{
-		if (running_ && thread_.joinable())
-		{
+	CStateMachine(const CStateMachine<_Ty>&) = delete;
+	CStateMachine<_Ty>& operator= (const CStateMachine<_Ty>&) = delete;
+	~CStateMachine() {
+		if (running_ && thread_.joinable()) {
 			thread_.join();
 		}
 	}
 
-	void init(const std::string &init_state, 
-		      const StateFunction &custom_func = NULL);
+	void init(const std::string& init_state, 
+		      const StateFunction& custom_func = NULL);
 	void start();
 	void startInThread() { thread_ = std::thread(&start); }
 	void stop() { running_ = false; }
@@ -67,11 +67,11 @@ public:
 	void removeStateChange();
 	void addStateFunc();
 	void removeStateFunc();
-	std::thread &getThread() { return thread_; }
-	std::string getState() { return cur_state_; }
+	std::thread& getThread() { return thread_; }
+	std::string getState() const { return cur_state_; }
 
 private:
-	void ignoreFunction(void *arg) {}
+	void ignoreFunction(void* arg) {}
 
 	//TODO:Make a set to collection states.
 	bool running_;
@@ -80,26 +80,23 @@ private:
 	std::string cur_state_;
 	StateChangeMap state_change_map_;
 	StateFunctionMap state_function_map_;
+	MessageQueue msg_queue_;
 };
 
 template<typename _Ty>
-inline void CStateMachine<_Ty>::init(const std::string &init_state,
-	                                     const StateFunction &custom_func)
-{
+inline void CStateMachine<_Ty>::init(const std::string& init_state,
+	                                 const StateFunction& custom_func) {
 	cur_state_ = init_state;
-	if (custom_function_ == NULL)
-	{
+	if (custom_function_ == NULL) {
 		using std::placeholders::_1;
 		custom_function_ = std::bind(&ignoreFunction, this, _1);
 	}
 }
 
 template<typename _Ty>
-inline void CStateMachine<_Ty>::start()
-{
+inline void CStateMachine<_Ty>::start() {
 	running_ = true;
-	while(running_)
-	{
+	while(running_) {
 
 	}
 }

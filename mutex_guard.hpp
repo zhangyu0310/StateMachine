@@ -30,18 +30,16 @@ template<typename _Ty>
 class MutexGuard
 {
 public:
-	explicit MutexGuard(_Ty &mutex) : mutex_(mutex)
-	{
+	explicit MutexGuard(_Ty& mutex) : mutex_(mutex) {
 		mutex_.lock();
 	}
-	MutexGuard(const MutexGuard<_Ty> &) = delete;
-	MutexGuard &operator= (const MutexGuard<_Ty> &) = delete;
-	~MutexGuard()
-	{
+	MutexGuard(const MutexGuard<_Ty>&) = delete;
+	MutexGuard& operator= (const MutexGuard<_Ty>&) = delete;
+	~MutexGuard() {
 		mutex_.unlock();
 	}
 private:
-	_Ty &mutex_;
+	_Ty& mutex_;
 };
 }
 #endif // !MUTEX_GUARD_H

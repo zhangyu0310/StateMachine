@@ -46,28 +46,25 @@ template<typename _Ty>
 class Condition
 {
 public:
-	explicit Condition(_Ty &mutex) : mutex_(mutex) {}
-	Condition(const Condition &) = delete;
-	Condition &operator= (const Condition &) = delete;
+	explicit Condition(_Ty& mutex) : mutex_(mutex) {}
+	Condition(const Condition&) = delete;
+	Condition& operator= (const Condition&) = delete;
 	~Condition() {}
 
 	//FIXME:Return value should be 'int'.
-	void signal()
-	{
+	void signal() {
 		condition_.notify_one();
 	}
-	void broadcast()
-	{
+	void broadcast() {
 		condition_.notify_all();
 	}
 	//TODO:wait for time.
-	void wait()
-	{
+	void wait() {
 		condition_.wait(mutex_);
 	}
 
 private:
-	_Ty &mutex_;
+	_Ty& mutex_;
 	std::condition_variable_any condition_;
 };
 } // namespace poppin
