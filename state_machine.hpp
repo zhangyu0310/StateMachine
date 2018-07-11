@@ -81,7 +81,6 @@ public:
 	}
 
 private:
-	//TODO:Make a set to collection states.
 	volatile bool running_;
 	bool inited_;
 	StateFunction custom_function_;
@@ -111,7 +110,7 @@ void CStateMachine<_State, _Input>::start() {
 		_Input input = msg_queue_.getMsg();
 		auto sc_map_it = state_change_map_.find(cur_state_);
 		if (sc_map_it == state_change_map_.end()) {
-			//TODO:A default final state
+			//A default final state
 			running_ = false;
 			continue;
 		}
