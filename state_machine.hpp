@@ -13,10 +13,11 @@
 #define STATE_MACHINE_H
 
 #include <functional>
+#include <list>
+#include <map>
 #include <set>
 #include <string>
 #include <thread>
-#include <unordered_map>
 
 #include "message_queue.hpp"
 
@@ -33,72 +34,136 @@ namespace poppin
 *
 * This class IS NOT thread-safe, be careful!
 */
-//typedef int _Ty;
-template<typename _Ty>
-class CStateMachine
-{
-	//FIXME:The name of the map 'StateChange' is asshole, pls revise...
-	typedef std::unordered_map<std::string, std::string> StateChange;
-    typedef std::unordered_map<_Ty, StateChange> StateChangeMap;
-	typedef std::function<void(void*)> StateFunction;
-	typedef std::unordered_map<std::string, StateFunction> StateFunctionMap;
+
+template<typename _State, typename _Input>
+class CStateMachine {
+	typedef std::function<void(CStateMachine*, void*)> StateFunction;
+	//FIXME:I don't know how to name this struct...
+	//FuncStatePair is a set of function and next state.
+	typedef std::pair<StateFunction, _State> FuncStatePair;
+	typedef std::map<_Input, FuncStatePair> InputFunctionMap;
+	typedef std::map<_State, InputFunctionMap> StateChangeMap;
+	typedef std::list<_State> StateList;
+
 public:
 
 	CStateMachine()
         : running_(false),
-		  custom_function_(NULL),
-		  cur_state_("") {}
-	CStateMachine(const CStateMachine<_Ty>&) = delete;
-	CStateMachine<_Ty>& operator= (const CStateMachine<_Ty>&) = delete;
+		  custom_function_(NULL) {}
+	CStateMachine(const CStateMachine&) = delete;
+	CStateMachine& operator= (const CStateMachine&) = delete;
 	~CStateMachine() {
 		if (running_ && thread_.joinable()) {
 			thread_.join();
 		}
 	}
 
-	void init(const std::string& init_state, 
+	void init(const _State& init_state,
 		      const StateFunction& custom_func = NULL);
 	void start();
-	void startInThread() { thread_ = std::thread(&start); }
+	void startInThread() { thread_ = std::thread(&CStateMachine::start, this); }
 	void stop() { running_ = false; }
-	void receiveImport();
+	void receiveImport(const _Input& input);
 
-	void addStateChange();
-	void removeStateChange();
-	void addStateFunc();
-	void removeStateFunc();
+	void addStateChange(const _State& start_state, const _Input& input,
+		                const StateFunction& function,
+		                const _State& end_state);
+	void removeStateChange(const _State& start_state, const _Input& input);
 	std::thread& getThread() { return thread_; }
-	std::string getState() const { return cur_state_; }
+	_State getState() const { return cur_state_; }
+	size_t getQueueSize() const { return msg_queue_.size(); }
+	bool isRunning() const { return running_; }
+	bool isInited() const { return inited_; }
+	static void ignoreFunction(CStateMachine* sm, void* arg) {}
+	static void exitFunction(CStateMachine* sm, void* arg) {
+		//TODO:Print or log error input and current state.
+		running_ = false;
+	}
 
 private:
-	void ignoreFunction(void* arg) {}
-
 	//TODO:Make a set to collection states.
-	bool running_;
+	volatile bool running_;
+	bool inited_;
 	StateFunction custom_function_;
 	std::thread thread_;
-	std::string cur_state_;
+	_State cur_state_;
 	StateChangeMap state_change_map_;
-	StateFunctionMap state_function_map_;
-	MessageQueue msg_queue_;
+	StateList state_list_;
+	MessageQueue<_Input> msg_queue_;
 };
 
-template<typename _Ty>
-inline void CStateMachine<_Ty>::init(const std::string& init_state,
+template<typename _State, typename _Input>
+inline void CStateMachine<_State, _Input>::init(const _State& init_state,
 	                                 const StateFunction& custom_func) {
 	cur_state_ = init_state;
 	if (custom_function_ == NULL) {
-		using std::placeholders::_1;
-		custom_function_ = std::bind(&ignoreFunction, this, _1);
+		//using std::placeholders::_1;
+		//custom_function_ = std::bind(&ignoreFunction, this, _1);
+		custom_function_ = &CStateMachine::ignoreFunction;
+	}
+	inited_ = true;
+}
+
+template<typename _State, typename _Input>
+void CStateMachine<_State, _Input>::start() {
+	running_ = true;
+	while (running_) {
+		_Input input = msg_queue_.getMsg();
+		auto sc_map_it = state_change_map_.find(cur_state_);
+		if (sc_map_it == state_change_map_.end()) {
+			//TODO:A default final state
+			running_ = false;
+			continue;
+		}
+		auto input_func_map = sc_map_it->second;
+		auto if_map_it = input_func_map.find(input);
+		if (if_map_it == input_func_map.end()) {
+			custom_function_(this, &input);
+			continue;
+		}
+	    auto func_state_pair = if_map_it->second;
+		func_state_pair.first(this, &input);
+		cur_state_ = func_state_pair.second;
 	}
 }
 
-template<typename _Ty>
-inline void CStateMachine<_Ty>::start() {
-	running_ = true;
-	while(running_) {
+template<typename _State, typename _Input>
+inline void CStateMachine<_State, _Input>::receiveImport(const _Input& input) {
+	msg_queue_.putMsg(input);
+}
 
+//TODO:Add default parameter, 
+//function is custom_function_ and end_state is same as start_state.
+template<typename _State, typename _Input>
+inline void CStateMachine<_State, _Input>::addStateChange(
+	const _State& start_state, 
+	const _Input& input, 
+	const StateFunction& function, 
+	const _State& end_state) {
+	//Use lower_bound instead of find to get more higer insert effectiveness.
+	auto sc_map_it = state_change_map_.lower_bound(start_state);
+	if (sc_map_it != state_change_map_.end() && 
+	    !(state_change_map_.key_comp()(start_state, sc_map_it->first))) {
+		auto input_map = sc_map_it->second;
+		//FIXME:Find if the input already exists, not only replace it.
+		FuncStatePair fs_pair = std::make_pair(function, end_state);
+		input_map[input] = fs_pair;
+		state_change_map_[start_state] = input_map;
+	} else {
+		FuncStatePair fs_pair = std::make_pair(function, end_state);
+		InputFunctionMap input_map;
+		input_map.insert(std::make_pair(input, fs_pair));
+		state_change_map_.insert(sc_map_it,
+			                     std::make_pair(start_state, input_map));
+		state_list_.push_back(start_state);
 	}
+}
+
+//TODO:This function is hard to achieve.
+template<typename _State, typename _Input>
+inline void CStateMachine<_State, _Input>::removeStateChange(
+	const _State& start_state, 
+	const _Input& input) {
 }
 
 }  // namespace poppin

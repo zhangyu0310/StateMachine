@@ -36,6 +36,7 @@ void func(std::mutex &mutex, bool &ready,
 }
 #endif
 
+#ifdef POPPIN_LOCK_TEST
 int main()
 {
 #ifdef POPPIN
@@ -68,3 +69,4 @@ int main()
 	    thr.join();
 	return 0;
 }
+#endif

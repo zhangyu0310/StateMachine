@@ -37,20 +37,20 @@ public:
 	_Ty getMsg() {
 		MutexGuard<std::mutex> guard(mutex_);
 		while (queue_.empty()) {
-			notEmpty_.wait(mutex_);
+			notEmpty_.wait();
 		}
 		_Ty msg(queue_.front());
 		queue_.pop_front();
 		return msg;
 	}
-	size_t size() {
+	size_t size() const {
 		MutexGuard<std::mutex> guard(mutex_);
 		return queue_.size();
 	}
 
 private:
 	std::deque<_Ty> queue_;
-	std::mutex mutex_;
+    mutable std::mutex mutex_;
 	Condition<std::mutex> notEmpty_;
 };
 }
