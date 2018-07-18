@@ -58,7 +58,7 @@ void exitFunc(poppin::CStateMachine<int, int>* sm, void* arg) {
 
 int main() {
 	poppin::CStateMachine<int, int> sm;
-	sm.addStateChange(ACCEPT, DIGITAL, func, ACCEPT);
+	//sm.addStateChange(ACCEPT, DIGITAL, func, ACCEPT);
 	sm.addStateChange(ACCEPT, LETTER, exitFunc, REFUSE);
 	sm.addStateChange(ACCEPT, OVER, exitFunc, DONE);
 	sm.init(ACCEPT, exitFunc);
@@ -73,8 +73,8 @@ int main() {
 		}
 	}
 	sm.receiveImport(OVER);
-	auto& thread = sm.getThread();
 	sm.startInThread();
+	auto& thread = sm.getThread();
 	if (thread.joinable()) {
 		thread.join();
 	}
