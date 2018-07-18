@@ -75,10 +75,10 @@ public:
 	bool isRunning() const { return running_; }
 	bool isInited() const { return inited_; }
 	static void ignoreFunction(CStateMachine* sm, void* arg) {}
-	static void exitFunction(CStateMachine* sm, void* arg) {
+	/*static void exitFunction(CStateMachine* sm, void* arg) {
 		//TODO:Print or log error input and current state.
 		running_ = false;
-	}
+	}*/
 
 private:
 	volatile bool running_;
