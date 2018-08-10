@@ -27,8 +27,7 @@ namespace poppin
 ***************************************
 */
 template<typename _Ty>
-class MutexGuard
-{
+class MutexGuard {
 public:
 	explicit MutexGuard(_Ty& mutex) : mutex_(mutex) {
 		mutex_.lock();

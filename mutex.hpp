@@ -16,8 +16,7 @@
 
 namespace poppin
 {
-class Mutex
-{
+class Mutex {
 public:
 	Mutex() : mutex_(new std::mutex) {}
 	Mutex(const Mutex&) = delete;

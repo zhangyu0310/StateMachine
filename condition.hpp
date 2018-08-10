@@ -43,8 +43,7 @@ namespace poppin
 ***************************************
 */
 template<typename _Ty>
-class Condition
-{
+class Condition {
 public:
 	explicit Condition(_Ty& mutex) : mutex_(mutex) {}
 	Condition(const Condition&) = delete;

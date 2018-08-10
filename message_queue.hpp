@@ -21,8 +21,7 @@
 namespace poppin
 {
 template<typename _Ty>
-class MessageQueue
-{
+class MessageQueue {
 public:
 	MessageQueue() : mutex_(), notEmpty_(mutex_) {}
 	MessageQueue(const MessageQueue&) = delete;
