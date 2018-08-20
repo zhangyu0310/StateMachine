@@ -1,4 +1,5 @@
-/*Copyright (C) 2018 poppinzhang.
+/*
+* Copyright (C) 2018 poppinzhang.
 *
 * Written by poppinzhang with C++11 <poppinzhang@tencent.com>
 *

@@ -52,3 +52,4 @@ Debug/StateMachine.tlog/link.write.1.tlog
 Debug/StateMachine.tlog/StateMachine.lastbuildstate
 Debug/vc141.idb
 Debug/vc141.pdb
+*.ipch

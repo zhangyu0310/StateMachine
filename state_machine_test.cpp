@@ -56,12 +56,12 @@ void exitFunc(poppin::CStateMachine<int, int>* sm, void* arg) {
 	sm->stop();
 }
 
-int main() {
+/*int main() {
 	poppin::CStateMachine<int, int> sm;
 	//sm.addStateChange(ACCEPT, DIGITAL, func, ACCEPT);
+	sm.init(ACCEPT, exitFunc);
 	sm.addStateChange(ACCEPT, LETTER, exitFunc, REFUSE);
 	sm.addStateChange(ACCEPT, OVER, exitFunc, DONE);
-	sm.init(ACCEPT, exitFunc);
 	//sm.startInThread();
 	std::string input;
 	std::cin >> input;
@@ -78,6 +78,7 @@ int main() {
 	if (thread.joinable()) {
 		thread.join();
 	}
+	//sm.start();
 	std::cout << mode2String(sm.getState()) << std::endl;
 	std::cin >> input;
-}
+}*/
